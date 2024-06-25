@@ -32,19 +32,19 @@ const registerUser = asyncHandler( async(req,res) => {
     if(!email.match(validRegex)){
         throw new ApiError(400,"Enter valid Email Id")
     }
-    res.status(200).json(
-        {
-            message:"ok"
-        }
-    )
+    // res.status(200).json(
+    //     {
+    //         message:"ok"
+    //     }
+    // )
 
     // check if user already exists: username, email
-    const existedUser = User.findOne(
+    const existedUser = await User.findOne(
         {
             $or:[{username},{email}]
         }
     )
-    console.log(existedUser);
+    // console.log(existedUser);
     if(existedUser){
         throw new ApiError(409,"User with email or username already exists")
     }
