@@ -9,6 +9,13 @@ cloudinary.config(
     }
 )
 
+const getPublicIdFromUrl = (url)=> {
+    // Regular expression to match the public ID in a Cloudinary URL
+    const regex = /cloudinary\.com\/(?:.*\/)*(.+?)\.[a-z]{3,4}$/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+}
+
 const uploadOnCloudinary = async(localFilePath) => {
     try {
         if(!localFilePath){
@@ -28,4 +35,17 @@ const uploadOnCloudinary = async(localFilePath) => {
     }
 }
 
-export {uploadOnCloudinary}
+const deleteOnCloudinary = async(oldURL) => {
+    try {
+        if(!oldURL){
+            return null
+        }
+        const publicId = getPublicIdFromUrl(oldURL)
+        //delete the file on cloudinary
+        await cloudinary.uploader.destroy(publicId)
+    } catch (error) {
+        return null
+    }
+}
+
+export {uploadOnCloudinary,deleteOnCloudinary}
