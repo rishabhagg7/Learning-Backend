@@ -1,7 +1,7 @@
 import {asyncHandler} from "../utils/asyncHandler.js";
 import {ApiError} from "../utils/ApiError.js"
 import {User} from "../models/user.model.js"
-import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import {uploadOnCloudinary, deleteOnCloudinary} from "../utils/cloudinary.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import jwt from "jsonwebtoken"
 
@@ -256,8 +256,11 @@ const refresAccessToken = asyncHandler(async (req,res) => {
 const changePassword = asyncHandler(async (req,res) => {
     const {oldPassword, newPassword} = req.body
     const user = await User.findById(req.user?._id)
-    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
-    if(!isPasswordCorrect){
+    if(!user){
+        throw new ApiError(400,"Unauthorized access")
+    }
+    const passwordCheck = await user.isPasswordCorrect(oldPassword)
+    if(!passwordCheck){
         throw new ApiError(400,"Invalid old password")
     }
 
@@ -285,7 +288,7 @@ const updateAccountDetails = asyncHandler(async(req,res) => {
         throw new ApiError(400,"All fields are required")
     }
 
-    const user = User.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
         req.user._id,
         {
             $set:{
@@ -322,6 +325,8 @@ const updateUserAvatar = asyncHandler(async(req,res) => {
         throw new ApiError(400,"Error while uploading the avatar")
     }
 
+    const oldAvatarUrl = req.user?.avatar
+
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
@@ -335,6 +340,8 @@ const updateUserAvatar = asyncHandler(async(req,res) => {
     ).select(
         "-password"
     )
+
+    await deleteOnCloudinary(oldAvatarUrl)
 
     return res
     .status(200)
@@ -354,6 +361,8 @@ const updateUserCoverImage = asyncHandler(async(req,res) => {
         throw new ApiError(400,"Cover image file is missing")
     }
 
+    const oldCoverImageUrl = req.user?.coverImage
+
     const coverImage = await uploadOnCloudinary(localCoverImagePath)
     if(!coverImage.url){
         throw new ApiError(400,"Error while uploading the cover image")
@@ -372,6 +381,8 @@ const updateUserCoverImage = asyncHandler(async(req,res) => {
     ).select(
         "-password"
     )
+
+    await deleteOnCloudinary(oldCoverImageUrl)
 
     return res
     .status(200)
