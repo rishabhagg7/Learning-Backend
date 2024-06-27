@@ -11,10 +11,10 @@ const uploadVideo = asyncHandler(async (req,res) => {
     const {title, description} = req.body
 
     //validation
-    if(!title?.length){
+    if(!title || !title.trim() === ""){
         throw new ApiError(400,"title not found")
     }
-    if(!description?.length){
+    if(!description || !description.trim() === ""){
         throw new ApiError(400,"description not found")
     }
 
@@ -158,6 +158,13 @@ const updateVideo = asyncHandler(async(req,res) => {
     // check if user is authorised to change the details
     if(!req.user?._id.equals(video.owner)){
         throw new ApiError(400,"User cannot update details of this video")
+    }
+
+    if(title?.trim() === ""){
+        throw new ApiError(400,"title cannot be empty")
+    }
+    if(description?.trim() === ""){
+        throw new ApiError(400,"description cannot be empty")
     }
     
     // set variables
