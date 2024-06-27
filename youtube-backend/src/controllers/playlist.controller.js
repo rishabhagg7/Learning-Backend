@@ -113,5 +113,31 @@ const updatePlaylist = asyncHandler(async(req,res)=>{
     )
 })
 
+const deletePlaylist = asyncHandler(async(req,res)=>{
+    // get playlistId from params
+    const {playlistId} = req.params
+    // check for playlistId
+    if(!playlistId){
+        throw new ApiError(400,"playlistId is required")
+    }
 
-export {createPlaylist,getPlaylistById,updatePlaylist}
+    // find and delete playlist
+    const deletedPlaylist = await Playlist.findByIdAndDelete(playlistId)
+    // check for deleted playlist
+    if(!deletePlaylist){
+        throw new ApiError(404,"Playlist not found")
+    }
+
+    // return response
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(
+            201,
+            deletedPlaylist,
+            "playlist deleted successfully"
+        )
+    )
+})
+
+export {createPlaylist,getPlaylistById,updatePlaylist,deletePlaylist}
