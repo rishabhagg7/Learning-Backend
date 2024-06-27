@@ -38,8 +38,9 @@ const createTweet = asyncHandler(async(req,res) => {
 })
 
 const updateTweet = asyncHandler(async(req,res) => {
-    //get content from body
+    //get id from params
     const {tweetId} = req.params
+    //get content from body
     const {content} = req.body
 
     //validation not empty
@@ -79,4 +80,32 @@ const updateTweet = asyncHandler(async(req,res) => {
     )
 })
 
-export {createTweet,updateTweet}
+const deleteTweet = asyncHandler(async(req,res) => {
+    //get id from params
+    const {tweetId} = req.params
+
+    //validation not empty
+    if(!tweetId){
+        throw new ApiError(400,"tweetId is not provided")
+    }
+
+    //find and delete
+    const tweet = await Tweet.findByIdAndDelete(tweetId)
+    if(!tweet){
+        throw new ApiError(404,"tweet not found") 
+    }
+    
+    // return response
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            tweet,
+            "Tweet deleted successfully"
+        )
+    )
+
+})
+
+export {createTweet,updateTweet,deleteTweet}
