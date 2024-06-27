@@ -67,5 +67,51 @@ const getPlaylistById = asyncHandler(async(req,res)=>{
     )
 })
 
+const updatePlaylist = asyncHandler(async(req,res)=>{
+    // get playlistId from params
+    const {playlistId} = req.params
+    // get title and description from body
+    const {name,description} = req.body
 
-export {createPlaylist,getPlaylistById}
+    // check for playlistId
+    if(!playlistId){
+        throw new ApiError(400,"playlistId is required")
+    }
+
+    if(name && !name.length){
+        throw new ApiError(400,"name is cannot be empty")
+    }
+
+    // Initialize update object
+    let updateFields = {};
+    if(name) updateFields.name = name;
+    if(description) updateFields.description = description;
+
+    const updatedPlaylist = await Playlist.findByIdAndUpdate(
+        playlistId,
+        { 
+            $set: updateFields 
+        },
+        { 
+            new: true 
+        } 
+    )
+    // check for playlist
+    if(!updatedPlaylist){
+        throw new ApiError(500,"error occured during updating playlist")
+    }
+
+    // return response
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(
+            201,
+            updatedPlaylist,
+            "playlist updated successfully"
+        )
+    )
+})
+
+
+export {createPlaylist,getPlaylistById,updatePlaylist}
