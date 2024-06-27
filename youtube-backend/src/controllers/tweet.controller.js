@@ -94,7 +94,7 @@ const deleteTweet = asyncHandler(async(req,res) => {
     if(!tweet){
         throw new ApiError(404,"tweet not found") 
     }
-    
+
     // return response
     return res
     .status(200)
@@ -108,4 +108,30 @@ const deleteTweet = asyncHandler(async(req,res) => {
 
 })
 
-export {createTweet,updateTweet,deleteTweet}
+const getTweetById = asyncHandler(async(req,res) => {
+    //get id from params
+    const {tweetId} = req.params
+
+    //validation not empty
+    if(!tweetId){
+        throw new ApiError(400,"tweetId is not provided")
+    }
+
+    const tweet = await Tweet.findById(tweetId)
+    if(!tweet){
+        throw new ApiError(404,"tweet not found") 
+    }
+
+    // return response
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            tweet,
+            "Tweet fetched successfully"
+        )
+    )
+})
+
+export {createTweet,updateTweet,deleteTweet,getTweetById}
