@@ -9,7 +9,7 @@ const createTweet = asyncHandler(async(req,res) => {
     //get content from body
     const {content} = req.body
     //validation not empty
-    if(!content?.length){
+    if(!content || !content.trim() === ""){
         throw new ApiError(400,"content not found")
     }
 
@@ -47,7 +47,7 @@ const updateTweet = asyncHandler(async(req,res) => {
     if(!tweetId){
         throw new ApiError(400,"tweetId is not provided")
     }
-    if(!content?.length){
+    if(!content || !content.trim() === ""){
         throw new ApiError(400,"content is not provided or empty")
     }
 
