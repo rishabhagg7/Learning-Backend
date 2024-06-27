@@ -119,8 +119,62 @@ const deleteComment = asyncHandler(async(req,res)=>{
     )
 })
 
+const getVideoComments = asyncHandler(async (req, res) => {
+    //get video Id from params
+    const {videoId} = req.params
+    //get page number and limit from query
+    const {page = 1, limit = 10} = req.query
+
+    // check for videoId
+    if(!videoId){
+        throw new ApiError(400,"videoId is required");
+    }
+
+    const comments = await Video.aggregate([
+        {
+            $match:{
+                _id:new mongoose.Types.ObjectId(videoId)
+            }
+        },
+        {
+            $lookup:{
+                from:"comments",
+                localField:"_id",
+                foreignField:"video",
+                as:"videoComments"
+            }
+        },
+        {
+            $project:{
+                videoComments:1
+            }
+        }
+    ])
+    if(!comments?.length){
+        throw new ApiError(404,"no comments found")
+    }
+
+    // pagination
+    let paginatedComments = comments[0].videoComments
+    const startIndex = Number(Number(page)-1)*Number(limit)
+    const endIndex = startIndex + Number(limit)
+    paginatedComments = paginatedComments.slice(startIndex,endIndex)
+
+    // return response
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(
+            201,
+            paginatedComments,
+            "Comments fetched successfully"
+        )
+    )
+})
+
 export {
     addComment,
     updateComment,
-    deleteComment
+    deleteComment,
+    getVideoComments
 }
