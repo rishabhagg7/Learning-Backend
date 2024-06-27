@@ -6,5 +6,6 @@ const router = Router()
 router.use(verifyJwt)
 
 router.route("/create").post(createTweet)
+router.route("/update/:tweetId").patch(updateTweet)
 
 export default router

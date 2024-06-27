@@ -37,4 +37,46 @@ const createTweet = asyncHandler(async(req,res) => {
     )
 })
 
-export {createTweet}
+const updateTweet = asyncHandler(async(req,res) => {
+    //get content from body
+    const {tweetId} = req.params
+    const {content} = req.body
+
+    //validation not empty
+    if(!tweetId){
+        throw new ApiError(400,"tweetId is not provided")
+    }
+    if(!content?.length){
+        throw new ApiError(400,"content is not provided or empty")
+    }
+
+    //find and update tweet object
+    const tweet = await Tweet.findByIdAndUpdate(
+        tweetId,
+        {
+            $set:{
+                content
+            }
+        },
+        {
+            new:true
+        }
+    )
+
+    if(!tweet){
+        throw new ApiError(404,"tweet not found") 
+    }
+
+    // return response
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(
+            201,
+            tweet,
+            "Tweet updated successfully"
+        )
+    )
+})
+
+export {createTweet,updateTweet}
