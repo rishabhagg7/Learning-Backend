@@ -4,6 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Playlist } from "../models/playlist.model.js";
 import { Video } from "../models/video.model.js"
+import { User } from "../models/user.model.js" 
 
 const createPlaylist = asyncHandler(async(req,res)=>{
     // get name and description from body
@@ -263,4 +264,78 @@ const removeVideoFromPlaylist = asyncHandler(async(req,res) => {
     )
 })
 
-export {createPlaylist,getPlaylistById,updatePlaylist,deletePlaylist,addVideoToPlaylist,removeVideoFromPlaylist}
+const getUserPlaylists = asyncHandler(async (req, res) => {
+    // get userId from params
+    const {userId} = req.params
+    // check for userId
+    if(!userId){
+        throw new ApiError(400,"userId is required")
+    }
+
+    let includePrivatePlaylist = false
+    if(new mongoose.Types.ObjectId(userId).equals(req.user._id)){
+        includePrivatePlaylist = true
+    }
+
+    // collect playlists of user using mongodb aggregate pipelines
+    const playlists = await User.aggregate([
+        {
+            $match:{
+                _id: new mongoose.Types.ObjectId(userId)
+            }
+        },
+        {
+            $lookup:{
+                from:"playlists",
+                localField:"_id",
+                foreignField:"owner",
+                as:"userPlaylists",
+                pipeline:[
+                    {
+                        $match: {
+                            $expr: {
+                              $cond: {
+                                if: { $eq: [includePrivatePlaylist, true] },
+                                then: {},
+                                else: { $eq: ["$isPrivate", false] }
+                              }
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $project:{
+                userPlaylists:1
+            }
+        }
+    ])
+    // check for playlists
+    if(!playlists.length){
+        throw new ApiError(404,"No playlists found")
+    }
+
+    // return response
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(
+            201,
+            playlists[0].userPlaylists,
+            "User playlists fetched successfully"
+        )
+    )
+    
+})
+
+
+export {
+    createPlaylist,
+    getPlaylistById,
+    updatePlaylist,
+    deletePlaylist,
+    addVideoToPlaylist,
+    removeVideoFromPlaylist,
+    getUserPlaylists
+}
