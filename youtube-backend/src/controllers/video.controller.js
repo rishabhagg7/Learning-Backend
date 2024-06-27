@@ -1,8 +1,9 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { uploadOnCloudinary,deleteOnCloudinary, deleteVideoOnCloudinary } from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js"
+import mongoose from "mongoose";
 
 const uploadVideo = asyncHandler(async (req,res) => {
     //get title, description
@@ -73,23 +74,21 @@ const uploadVideo = asyncHandler(async (req,res) => {
 })
 
 const getVideoById = asyncHandler(async (req,res) => {
-    // check for video object
-    // return response
-
     // get videoId from params
     const {videoId} = req.params
 
     // check videoId it exists
     if(!videoId){
-        return new ApiError(400,"videoId not found!")
+        throw new ApiError(400,"videoId not found!")
     }
 
     // get video from db by id
     const video = await Video.findById(videoId)
+    // check for video object
     if(!video){
-        return new ApiError(404,"video not found")
+        throw new ApiError(404,"video not found")
     }
-    
+    // return response
     return res
     .status(200)
     .json(
@@ -101,4 +100,43 @@ const getVideoById = asyncHandler(async (req,res) => {
     )
 })
 
-export {uploadVideo,getVideoById}
+const deleteVideo = asyncHandler(async (req,res) => {
+    //get video id from params
+    const {videoId} = req.params
+
+    //check id if exits and delete video obj from db
+    if(!videoId){
+        throw new ApiError(400,"videoId not found!")
+    }
+    const video = await Video.findById(videoId)
+    if(!video){
+        throw new ApiError(404,"video not found")
+    }
+    if(!req.user?._id.equals(video.owner)){
+        throw new ApiError(400,"User cannot delete this video")
+    }
+
+    const deletedVideo = await Video.deleteOne({
+        _id:video._id
+    })
+    if(!deletedVideo){
+        throw new ApiError(500,"Internal error while deleting video")
+    }
+
+    //delete thumbnail,videoFile from cloudinary
+    await deleteOnCloudinary(video.thumbnail)
+    await deleteVideoOnCloudinary(video.videoFile)
+
+    //return response
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            {},
+            "Video deleted successfully"
+        )
+    )
+})
+
+export {uploadVideo,deleteVideo,getVideoById}
