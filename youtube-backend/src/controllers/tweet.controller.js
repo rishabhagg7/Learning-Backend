@@ -134,4 +134,46 @@ const getTweetById = asyncHandler(async(req,res) => {
     )
 })
 
-export {createTweet,updateTweet,deleteTweet,getTweetById}
+const getUserTweets = asyncHandler(async(req,res)=>{
+    // get userId from params
+    const {userId} = req.params
+    
+    //collect tweets of user using mongodb aggregate pipelines
+    const tweets = await User.aggregate([
+        {
+            $match:{
+                _id:new mongoose.Types.ObjectId(userId)
+            }
+        },
+        {
+            $lookup:{
+                from:"tweets",
+                localField:"_id",
+                foreignField:"owner",
+                as:"userTweets"
+            }
+        },
+        {
+            $project:{
+                userTweets:1
+            }
+        }
+    ])
+
+    if(!tweets?.length){
+        throw new ApiError(404,"No tweets found")
+    }
+
+    //return response
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            tweets[0],
+            "All tweets fetched successfully"
+        )
+    )
+})
+
+export {createTweet,updateTweet,deleteTweet,getTweetById,getUserTweets}
