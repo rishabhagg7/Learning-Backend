@@ -50,6 +50,50 @@ const addComment = asyncHandler(async(req,res) => {
     )
 })
 
+const updateComment = asyncHandler(async(req,res)=>{
+    // get commentId from params
+    const {commentId} = req.params
+    // get content from body
+    const {content} = req.body
+
+    // check for commentId
+    if(!commentId){
+        throw new ApiError(400,"commentId is required");
+    }
+    // check for content
+    if(!content || content.trim() === ""){
+        throw new ApiError(400,"content is required");
+    }
+
+    // find and update the comment
+    const updatedComment = await Comment.findByIdAndUpdate(
+        commentId,
+        {
+            $set:{
+                content:content
+            }
+        },
+        {
+            new:true
+        }
+    )
+    if(!updatedComment){
+        throw new ApiError(404,"comment not found")
+    }
+
+    // return response
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(
+            201,
+            updatedComment,
+            "Comment updated successfully!"
+        )
+    )
+})
+
 export {
-    addComment
+    addComment,
+    updateComment
 }
