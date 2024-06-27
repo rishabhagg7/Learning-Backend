@@ -185,7 +185,7 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
 
     // Check if the current user is the owner of the playlist
     if (!playlist.owner.equals(req.user._id)) {
-        throw new ApiError(403, "User is not authorized to delete this playlist");
+        throw new ApiError(403, "User is not authorized to add video in this playlist");
     }
 
     // check if video exits or not
@@ -217,4 +217,50 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
     )
 })
 
-export {createPlaylist,getPlaylistById,updatePlaylist,deletePlaylist,addVideoToPlaylist}
+const removeVideoFromPlaylist = asyncHandler(async(req,res) => {
+    // get playlistId and videoId from params
+    let {playlistId, videoId} = req.params
+    // check for playlistId
+    if(!playlistId){
+        throw new ApiError(400,"playlistId is required")
+    }
+    // check for videoId
+    if(!videoId){
+        throw new ApiError(400,"videoId is required")
+    }
+    
+    // check if playlist exists
+    const playlist = await Playlist.findById(playlistId)
+    if(!playlist){
+        throw new ApiError(404,"playlist not found")
+    }
+
+    // Check if the current user is the owner of the playlist
+    if (!playlist.owner.equals(req.user._id)) {
+        throw new ApiError(403, "User is not authorized to delete video in this playlist");
+    }
+
+    // check if video is present in the playlist
+    const videos = playlist.videos;
+    if (!videos.includes(videoId)) {
+        throw new ApiError(404, "Video is not present in the playlist");
+    }
+
+    // delete video from playlist's videos array
+    videoId = new mongoose.Types.ObjectId(videoId)
+    playlist.videos = videos.filter((id) => !id.equals(videoId))
+    playlist.save({validateBeforeSave:false})
+
+    // return response
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(
+            201,
+            playlist.videos,
+            "video removed successfully"
+        )
+    )
+})
+
+export {createPlaylist,getPlaylistById,updatePlaylist,deletePlaylist,addVideoToPlaylist,removeVideoFromPlaylist}
