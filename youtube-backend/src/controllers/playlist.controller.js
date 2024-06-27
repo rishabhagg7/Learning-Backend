@@ -39,4 +39,33 @@ const createPlaylist = asyncHandler(async(req,res)=>{
     )
 })
 
-export {createPlaylist}
+const getPlaylistById = asyncHandler(async(req,res)=>{
+    // get playlistId from params
+    const {playlistId} = req.params
+    // check for playlistId
+    if(!playlistId){
+        throw new ApiError(400,"playlistId is required")
+    }
+
+    // get playlist from db
+    const playlist = await Playlist.findById(playlistId)
+
+    // check for playlist
+    if(!playlist){
+        throw new ApiError(404,"playlist not found")
+    }
+
+    // return response
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(
+            201,
+            playlist,
+            "playlist fetched successfully"
+        )
+    )
+})
+
+
+export {createPlaylist,getPlaylistById}
