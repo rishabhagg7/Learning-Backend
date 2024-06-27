@@ -4,6 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary,deleteOnCloudinary, deleteVideoOnCloudinary } from "../utils/cloudinary.js";
 import { Video } from "../models/video.model.js"
 import mongoose from "mongoose";
+import { User } from "../models/user.model.js";
 
 const uploadVideo = asyncHandler(async (req,res) => {
     //get title, description
@@ -255,4 +256,69 @@ const togglePublishStatus = asyncHandler(async(req,res) => {
     )
 })
 
-export {uploadVideo,deleteVideo,getVideoById,updateVideo,togglePublishStatus}
+const getAllVideos = asyncHandler(async (req, res) => {
+    //all videos of an user
+    //get fields
+    let { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
+    if(!userId){
+        throw new ApiError(400,"userId does not exist")
+    }
+    
+    //collect videos of user using mongodb aggregate pipelines
+    const videos = await User.aggregate([
+        {
+            $match:{
+                _id: new mongoose.Types.ObjectId(userId)
+            }
+        },
+        {
+            $lookup:{
+                from: "videos",
+                localField: "_id",
+                foreignField: "owner",
+                as:"uploadedVideos"
+            }
+        },
+        {
+            $project:{
+                uploadedVideos:1
+            }
+        }
+    ])
+
+    if(!videos?.length){
+        throw new ApiError(404,"No videos found")
+    }
+
+    //paginate - create a subset from collection
+    let paginatedVideos = videos[0].uploadedVideos
+    const startIndex = Number(Number(page)-1)*Number(limit)
+    const endIndex = startIndex + Number(limit)
+    paginatedVideos = paginatedVideos.slice(startIndex,endIndex)
+
+    //do sorting
+    sortBy = sortBy || "createdAt"
+    sortType = sortType === 'desc' ? -1 : 1; // Converting 'desc' to -1, default to 1
+    paginatedVideos.sort((a, b) => {
+        if (a[sortBy] < b[sortBy]) {
+            return -1 * sortType;
+        }
+        if (a[sortBy] > b[sortBy]) {
+            return 1 * sortType;
+        }
+        return 0;
+    });
+
+    //return response
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            paginatedVideos,
+            "Videos fetched successfully"
+        )
+    )
+})
+
+export {uploadVideo,deleteVideo,getVideoById,updateVideo,togglePublishStatus,getAllVideos}
