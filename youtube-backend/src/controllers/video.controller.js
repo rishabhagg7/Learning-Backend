@@ -139,4 +139,76 @@ const deleteVideo = asyncHandler(async (req,res) => {
     )
 })
 
-export {uploadVideo,deleteVideo,getVideoById}
+const updateVideo = asyncHandler(async(req,res) => {
+    // get video id from params, title and description from body
+    const {videoId} = req.params
+    const {title,description} = req.body
+
+    // check if video exist
+    if(!videoId){
+        throw new ApiError(400,"videoId not found")
+    }
+
+    // get video
+    const video = await Video.findById(videoId)
+    if(!video){
+        throw new ApiError(404,"Video not found")
+    }
+    // check if user is authorised to change the details
+    if(!req.user?._id.equals(video.owner)){
+        throw new ApiError(400,"User cannot update details of this video")
+    }
+    
+    // set variables
+    let newTitle = title || video.title;
+    let newDescription = description || video.description;
+    let newThumbnailPath;
+    if(req.file){
+        newThumbnailPath = req.file.path
+    }
+
+    let newThumbnail;
+    // update in cloudinary if there is a thumbnail
+    if(newThumbnailPath){
+        newThumbnail = await uploadOnCloudinary(newThumbnailPath)
+        await deleteOnCloudinary(video.thumbnail)
+
+        if(!newThumbnail){
+            throw new ApiError(500,"Interal error while uploading new thumbnail")
+        }
+        newThumbnail = newThumbnail.url
+    }else{
+        newThumbnail = video.thumbnail
+    }
+
+    // update the object
+    const updatedVideo = await Video.findOneAndUpdate(
+        {
+            _id:videoId
+        },
+        {
+            title:newTitle,
+            description:newDescription,
+            thumbnail:newThumbnail
+        },
+        {
+            new:true
+        }
+    )
+    if(!updatedVideo){
+        throw new ApiError(500,"Video could not be updated")
+    }
+
+    // return response
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            updatedVideo,
+            "Video updated successfully"
+        )
+    )
+})
+
+export {uploadVideo,deleteVideo,getVideoById,updateVideo}
