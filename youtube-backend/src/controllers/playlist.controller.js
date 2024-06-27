@@ -11,7 +11,7 @@ const createPlaylist = asyncHandler(async(req,res)=>{
     const {name, description, isPrivate} = req.body
 
     // validation
-    if(!name){
+    if(!name || name.trim() === ""){
         throw new ApiError(400,"name is required")
     }
 
@@ -81,7 +81,7 @@ const updatePlaylist = asyncHandler(async(req,res)=>{
         throw new ApiError(400,"playlistId is required")
     }
 
-    if(name && !name.length){
+    if(name && name.trim() === ""){
         throw new ApiError(400,"name is cannot be empty")
     }
 
