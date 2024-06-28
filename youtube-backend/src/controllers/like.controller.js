@@ -5,6 +5,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { Like } from "../models/like.model.js";
 import { Video } from "../models/video.model.js"
 import { Tweet } from "../models/tweet.model.js"
+import { Comment } from "../models/comment.model.js"
 
 const toggleVideoLike = asyncHandler(async(req,res) => {
     // get videoId from params
@@ -116,7 +117,63 @@ const toggleTweetLike = asyncHandler(async(req,res) => {
 
 })
 
+const toggleCommentLike = asyncHandler(async(req,res) => {
+    // get commentId from params
+    const {commentId} = req.params
+    if(!commentId){
+        throw new ApiError(400,"commentId is required")
+    }
+
+    // check if comment exists
+    const comment = await Comment.findById(commentId)
+    if(!comment){
+        throw new ApiError(404,"comment not found")
+    }
+
+    // check if user has already liked the comment -> delete the like object else create a like object
+    const isLiked = await Like.findOne({
+        $and:[
+            {
+                likedBy:req.user._id
+            },
+            {
+                comment:commentId
+            }
+        ]
+    })
+
+    // handle like object
+    if(isLiked){
+        // delete that like object
+        const deletedLike = await Like.findByIdAndDelete(isLiked._id)
+        if(!deletedLike){
+            throw new ApiError(500,"Internal error while removing like")
+        }
+    }else{
+        // create a like object
+        const createdLike = await Like.create({
+            likedBy:req.user._id,
+            comment:commentId
+        })
+        if(!createdLike){
+            throw new ApiError(500,"Internal error while adding like")
+        }
+    }
+
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(
+            201,
+            {},
+            "like changed successfully on comment"
+        )
+    )
+
+})
+
 export{
     toggleVideoLike,
-    toggleTweetLike
+    toggleTweetLike,
+    toggleCommentLike
 }
