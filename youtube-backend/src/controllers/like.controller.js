@@ -6,6 +6,7 @@ import { Like } from "../models/like.model.js";
 import { Video } from "../models/video.model.js"
 import { Tweet } from "../models/tweet.model.js"
 import { Comment } from "../models/comment.model.js"
+import { User } from "../models/user.model.js";
 
 const toggleVideoLike = asyncHandler(async(req,res) => {
     // get videoId from params
@@ -172,8 +173,59 @@ const toggleCommentLike = asyncHandler(async(req,res) => {
 
 })
 
+const getLikedVideos = asyncHandler(async(req,res) => {
+    // to get all liked videos of user
+
+    // looking for like objects having video field using aggregate pipeline
+    const likedVideos = await User.aggregate([
+        {
+            $match:{
+                _id:new mongoose.Types.ObjectId(req.user._id)
+            }
+        },
+        {
+            $lookup:{
+                from:"likes",
+                localField:"_id",
+                foreignField:"likedBy",
+                as:"userLikedVideos",
+                pipeline:[
+                    {
+                        $match:{
+                            video:{
+                                $exists:true
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $project:{
+                userLikedVideos:1
+            }
+        }
+    ])
+
+    if(!likedVideos?.length){
+        throw new ApiError(404,"no liked videos found")
+    }
+
+    // return response
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(
+            201,
+            likedVideos[0].userLikedVideos,
+            "all videos liked by user fetched successfully"
+        )
+    )
+})
+
 export{
     toggleVideoLike,
     toggleTweetLike,
-    toggleCommentLike
+    toggleCommentLike,
+    getLikedVideos
 }
