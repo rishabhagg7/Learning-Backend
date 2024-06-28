@@ -4,6 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Like } from "../models/like.model.js";
 import { Video } from "../models/video.model.js"
+import { Tweet } from "../models/tweet.model.js"
 
 const toggleVideoLike = asyncHandler(async(req,res) => {
     // get videoId from params
@@ -54,12 +55,68 @@ const toggleVideoLike = asyncHandler(async(req,res) => {
         new ApiResponse(
             201,
             {},
-            "like changed successfully"
+            "like changed successfully on video"
+        )
+    )
+
+})
+
+const toggleTweetLike = asyncHandler(async(req,res) => {
+    // get tweetId from params
+    const {tweetId} = req.params
+    if(!tweetId){
+        throw new ApiError(400,"tweetId is required")
+    }
+
+    // check if tweet exists
+    const tweet = await Tweet.findById(tweetId)
+    if(!tweet){
+        throw new ApiError(404,"tweet not found")
+    }
+
+    // check if user has already liked the tweet -> delete the like object else create a like object
+    const isLiked = await Like.findOne({
+        $and:[
+            {
+                likedBy:req.user._id
+            },
+            {
+                tweet:tweetId
+            }
+        ]
+    })
+
+    // handle like object
+    if(isLiked){
+        // delete that like object
+        const deletedLike = await Like.findByIdAndDelete(isLiked._id)
+        if(!deletedLike){
+            throw new ApiError(500,"Internal error while removing like")
+        }
+    }else{
+        // create a like object
+        const createdLike = await Like.create({
+            likedBy:req.user._id,
+            tweet:tweetId
+        })
+        if(!createdLike){
+            throw new ApiError(500,"Internal error while adding like")
+        }
+    }
+
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(
+            201,
+            {},
+            "like changed successfully on tweet"
         )
     )
 
 })
 
 export{
-    toggleVideoLike
+    toggleVideoLike,
+    toggleTweetLike
 }
