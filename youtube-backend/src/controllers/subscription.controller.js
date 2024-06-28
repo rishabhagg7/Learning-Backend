@@ -113,12 +113,66 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
             {
                 subscribedTo:subscribedChannels[0].subscribedTo
             },
-            "Subscriber list of a subscriber fetched successfully"
+            "channel list of a subscriber fetched successfully"
         )
     )
 })
 
+// controller to return subscriber list of a channel
+const getUserChannelSubscribers = asyncHandler(async (req, res) => {
+    // get channelId from params
+    const {channelId} = req.params
+    if(!channelId){
+        throw new ApiError(400,"channelId is required")
+    }
+
+    // getting subscriber list of a channel
+    const subscribers = await User.aggregate([
+        {
+            $match:{
+                _id:new mongoose.Types.ObjectId(channelId)
+            }
+        },
+        {
+            $lookup:{
+                from:"subscriptions",
+                localField:"_id",
+                foreignField:"channel",
+                as:"subscribers",
+            }
+        },
+        {
+            $addFields:{
+                subscriber:"$subscribers.subscriber"
+            }
+        },
+        {
+            $project:{
+                subscriber:1
+            }
+        }
+    ])
+    if(!subscribers?.length){
+        throw new ApiError(404,"No subscribers found of channel")
+    }
+
+    // return response
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(
+            201,
+            {
+                subscribers:subscribers[0].subscriber
+            },
+            "Subscriber list of a channel fetched successfully"
+        )
+    )
+})
+
+
 export{
     toggleSubscription,
-    getSubscribedChannels
+    getSubscribedChannels,
+    getUserChannelSubscribers
 }
