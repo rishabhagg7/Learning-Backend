@@ -49,4 +49,96 @@ const getChannelVideos = asyncHandler(async(req,res)=>{
     )
 })
 
-export {getChannelVideos}
+// Get the channel stats like total video views, total subscribers, total videos, total likes etc.
+const getChannelStats = asyncHandler(async(req,res)=>{
+    const { channelId } = req.params;
+
+    const channelDetails = await User.aggregate([
+        {
+            $match:{
+                _id:new mongoose.Types.ObjectId(channelId)
+            }
+        },
+        {
+            $lookup:{
+                from:"videos",
+                localField:"_id",
+                foreignField:"owner",
+                as:"channelVideos",
+                pipeline:[
+                    {
+                        $lookup:{
+                            from:"likes",
+                            localField:"_id",
+                            foreignField:"video",
+                            as:"videoLikes"
+                        }
+                    },
+                    {
+                        $addFields:{
+                            likesCountOnVideo:{
+                                $size:"$videoLikes"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $lookup:{
+                from:"subscriptions",
+                localField:"_id",
+                foreignField:"channel",
+                as:"subscribers"
+            }
+        },
+        {
+            $addFields:{
+                totalVideos:{
+                    $size:"$channelVideos"
+                },
+                totalViews:{
+                    $sum:"$channelVideos.views"
+                },
+                totalLikes:{
+                    $sum:"$channelVideos.likesCountOnVideo"
+                },
+                totalSubscribers:{
+                    $size:"$subscribers"
+                }
+            }
+        },
+        {
+            $project:{
+                totalVideos:1,
+                totalViews:1,
+                totalLikes:1,
+                totalSubscribers:1
+            }
+        }
+    ])
+
+    if(!channelDetails){
+        throw new ApiError(404,"Details not found")
+    }
+
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(
+            201,
+            {
+                totalLikes:channelDetails[0].totalLikes,
+                totalViews:channelDetails[0].totalViews,
+                totalVideos:channelDetails[0].totalVideos,
+                totalSubscribers:channelDetails[0].totalSubscribers
+            },
+            "channel details fetched successfully"
+        )
+    )
+})
+
+export {
+    getChannelVideos,
+    getChannelStats
+}
