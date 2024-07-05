@@ -20,9 +20,10 @@ router.route("/upload-video").post(
     uploadVideo
 )
 
-router.route("/get-video/:videoId").get(getVideoById)
-router.route("/delete-video/:videoId").delete(deleteVideo)
-router.route("/update-video/:videoId").patch(upload.single("thumbnail"),updateVideo)
+router.route("/:videoId")
+    .get(getVideoById)
+    .delete(deleteVideo)
+    .patch(upload.single("thumbnail"),updateVideo)
 router.route("/toggle-status/:videoId").patch(togglePublishStatus)
 router.route("/get-all-videos").get(getAllVideos)
 export default router
