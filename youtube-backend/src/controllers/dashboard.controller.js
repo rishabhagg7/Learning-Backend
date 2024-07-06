@@ -75,9 +75,20 @@ const getChannelStats = asyncHandler(async(req,res)=>{
                         }
                     },
                     {
+                        $lookup:{
+                            from:"views",
+                            localField:"_id",
+                            foreignField:"video",
+                            as:"videoViewers"
+                        }
+                    },
+                    {
                         $addFields:{
                             likesCountOnVideo:{
                                 $size:"$videoLikes"
+                            },
+                            videoViews:{
+                                $size:"$videoViewers"
                             }
                         }
                     }
@@ -98,7 +109,7 @@ const getChannelStats = asyncHandler(async(req,res)=>{
                     $size:"$channelVideos"
                 },
                 totalViews:{
-                    $sum:"$channelVideos.views"
+                    $sum:"$channelVideos.videoViews"
                 },
                 totalLikes:{
                     $sum:"$channelVideos.likesCountOnVideo"
