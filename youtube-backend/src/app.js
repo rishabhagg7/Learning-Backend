@@ -25,6 +25,7 @@ import likeRouter from "./routes/like.routes.js"
 import subscriptionRouter from "./routes/subscription.routes.js"
 import healthCheckRouter from "./routes/healthcheck.routes.js"
 import dashboardRouter from "./routes/dashboard.routes.js"
+import viewRouter from "./routes/view.routes.js"
 
 // routes declaration
 app.use("/api/v1/users",userRouter)
@@ -36,6 +37,7 @@ app.use("/api/v1/likes",likeRouter)
 app.use("/api/v1/subscriptions",subscriptionRouter)
 app.use("/api/v1/healthCheck",healthCheckRouter)
 app.use("/api/v1/dashboard",dashboardRouter)
+app.use("/api/v1/views",viewRouter)
 
 //http://localhost:8000/api/v1/users/register 
 
