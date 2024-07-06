@@ -74,4 +74,59 @@ const addVideoView = asyncHandler(async(req,res)=>{
 
 })
 
-export {addVideoView};
+const getTotalViews = asyncHandler(async(req,res)=>{
+    // get videoId from params
+    const {videoId} = req.params
+    if(!videoId){
+        throw new ApiError(400,"videoId is required")
+    }
+
+    const views = await Video.aggregate([
+        {
+            $match:{
+                _id:new mongoose.Types.ObjectId(videoId)
+            }
+        },
+        {
+            $lookup:{
+                from:"views",
+                localField:"_id",
+                foreignField:"video",
+                as:"viewersList"
+            }
+        },
+        {
+            $addFields:{
+                views:{
+                    $size:"$viewersList"
+                }
+            }
+        },
+        {
+            $project:{
+                views:1
+            }
+        }
+    ])
+
+    if(!views.length){
+        throw new ApiError(404,"view count not found")
+    }
+
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(
+            201,
+            {
+                views: views[0].views
+            },
+            "total views fetched successfully!"
+        )
+    )
+})
+
+export {
+    addVideoView,
+    getTotalViews
+};
