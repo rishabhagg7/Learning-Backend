@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import { User } from "../models/user.model.js";
 import { View } from "../models/view.model.js";
 import { Like } from "../models/like.model.js";
+import { Comment } from "../models/comment.model.js"
 
 const uploadVideo = asyncHandler(async (req,res) => {
     //get title, description
@@ -139,6 +140,30 @@ const deleteVideo = asyncHandler(async (req,res) => {
 
     // delete likes on the video
     await Like.deleteMany(
+        {
+            video:videoId
+        }
+    )
+
+    // get comments on the video
+    const comments = await Comment.find(
+        {
+            video:videoId
+        }
+    )
+
+    // extracting comment ids
+    const commentIds = comments?.map(comment => comment?._id)
+
+    // delete likes on the comment of the video
+    await Like.deleteMany(
+        {
+            comment:{$in: commentIds}
+        }
+    )
+
+    // delete comments on the video
+    await Comment.deleteMany(
         {
             video:videoId
         }
