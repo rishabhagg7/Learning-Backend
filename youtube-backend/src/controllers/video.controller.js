@@ -8,6 +8,7 @@ import { User } from "../models/user.model.js";
 import { View } from "../models/view.model.js";
 import { Like } from "../models/like.model.js";
 import { Comment } from "../models/comment.model.js"
+import { Playlist } from "../models/playlist.model.js"
 
 const uploadVideo = asyncHandler(async (req,res) => {
     //get title, description
@@ -166,6 +167,16 @@ const deleteVideo = asyncHandler(async (req,res) => {
     await Comment.deleteMany(
         {
             video:videoId
+        }
+    )
+
+    // delete videos from playlists
+    await Playlist.updateMany(
+        {},
+        {
+            $pull:{
+                videos:videoId
+            }
         }
     )
     
