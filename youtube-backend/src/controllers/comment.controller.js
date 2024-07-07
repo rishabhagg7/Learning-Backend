@@ -109,7 +109,7 @@ const deleteComment = asyncHandler(async(req,res)=>{
     }
 
     // delete likes on the comment
-    const deleteLikes = await Like.deleteMany(
+    await Like.deleteMany(
         {
             comment:commentId
         }

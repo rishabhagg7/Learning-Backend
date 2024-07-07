@@ -97,7 +97,7 @@ const deleteTweet = asyncHandler(async(req,res) => {
     }
 
     // delete likes on the tweet
-    const deleteLikes = await Like.deleteMany(
+    await Like.deleteMany(
         {
             tweet:tweetId
         }

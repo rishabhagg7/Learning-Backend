@@ -5,6 +5,8 @@ import { uploadOnCloudinary,deleteOnCloudinary, deleteVideoOnCloudinary } from "
 import { Video } from "../models/video.model.js"
 import mongoose from "mongoose";
 import { User } from "../models/user.model.js";
+import { View } from "../models/view.model.js";
+import { Like } from "../models/like.model.js";
 
 const uploadVideo = asyncHandler(async (req,res) => {
     //get title, description
@@ -128,6 +130,20 @@ const deleteVideo = asyncHandler(async (req,res) => {
     await deleteOnCloudinary(video.thumbnail)
     await deleteVideoOnCloudinary(video.videoFile)
 
+   // delete views on the video
+    await View.deleteMany(
+        {
+            video:videoId
+        }
+    )
+
+    // delete likes on the video
+    await Like.deleteMany(
+        {
+            video:videoId
+        }
+    )
+    
     //return response
     return res
     .status(200)
