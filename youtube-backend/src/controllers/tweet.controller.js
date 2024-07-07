@@ -4,6 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Tweet } from "../models/tweet.model.js";
 import { User } from "../models/user.model.js";
+import { Like } from "../models/like.model.js"
 
 const createTweet = asyncHandler(async(req,res) => {
     //get content from body
@@ -94,6 +95,13 @@ const deleteTweet = asyncHandler(async(req,res) => {
     if(!tweet){
         throw new ApiError(404,"tweet not found") 
     }
+
+    // delete likes on the tweet
+    const deleteLikes = await Like.deleteMany(
+        {
+            tweet:tweetId
+        }
+    )
 
     // return response
     return res

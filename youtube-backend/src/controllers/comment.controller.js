@@ -4,6 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Comment } from "../models/comment.model.js";
 import { Video } from "../models/video.model.js";
+import { Like } from "../models/like.model.js";
 
 const addComment = asyncHandler(async(req,res) => {
     // get videoId from params
@@ -106,6 +107,13 @@ const deleteComment = asyncHandler(async(req,res)=>{
     if(!deletedComment){
         throw new ApiError(404,"comment not found")
     }
+
+    // delete likes on the comment
+    const deleteLikes = await Like.deleteMany(
+        {
+            comment:commentId
+        }
+    )
 
     // return response
     return res
