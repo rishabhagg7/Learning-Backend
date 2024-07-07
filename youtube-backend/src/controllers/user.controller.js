@@ -487,12 +487,12 @@ const getWatchHistory = asyncHandler(async(req,res) => {
                 from:"views",
                 localField:"_id",
                 foreignField:"viewedBy",
-                as:"videoHistory"
+                as:"watchedVideosList"
             }
         },
         {
             $addFields:{
-                watchHistory:"$videoHistory.video"
+                watchHistory:"$watchedVideosList.video"
             }
         },
         {
