@@ -223,9 +223,153 @@ const getLikedVideos = asyncHandler(async(req,res) => {
     )
 })
 
+const getLikeCountVideo = asyncHandler(async(req,res) => {
+    const {videoId} = req.params
+    const totalLikes = await Video.aggregate([
+        {
+            $match:{
+                _id:new mongoose.Types.ObjectId(videoId)
+            }
+        },
+        {
+            $lookup:{
+                from:"likes",
+                localField:"_id",
+                foreignField:"video",
+                as:"likesList"
+            }
+        },
+        {
+            $addFields:{
+                likes:{
+                    $size:"$likesList"
+                }
+            }
+        },
+        {
+            $project:{
+                likes:1
+            }
+        }
+    ])
+
+    if(!totalLikes.length){
+        throw new ApiError(404,"like count not found")
+    }
+
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(
+            201,
+            {
+                likes:totalLikes[0].likes
+            },
+            "total likes on video fetched successfully"
+        )
+    )
+})
+
+const getLikeCountTweet = asyncHandler(async(req,res) => {
+    const {tweetId} = req.params
+    const totalLikes = await Tweet.aggregate([
+        {
+            $match:{
+                _id:new mongoose.Types.ObjectId(tweetId)
+            }
+        },
+        {
+            $lookup:{
+                from:"likes",
+                localField:"_id",
+                foreignField:"tweet",
+                as:"likesList"
+            }
+        },
+        {
+            $addFields:{
+                likes:{
+                    $size:"$likesList"
+                }
+            }
+        },
+        {
+            $project:{
+                likes:1
+            }
+        }
+    ])
+
+    if(!totalLikes.length){
+        throw new ApiError(404,"like count not found")
+    }
+
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(
+            201,
+            {
+                likes:totalLikes[0].likes
+            },
+            "total likes on tweet fetched successfully"
+        )
+    )
+})
+
+const getLikeCountComment = asyncHandler(async(req,res) => {
+    const {commentId} = req.params
+    const totalLikes = await Comment.aggregate([
+        {
+            $match:{
+                _id:new mongoose.Types.ObjectId(commentId)
+            }
+        },
+        {
+            $lookup:{
+                from:"likes",
+                localField:"_id",
+                foreignField:"comment",
+                as:"likesList"
+            }
+        },
+        {
+            $addFields:{
+                likes:{
+                    $size:"$likesList"
+                }
+            }
+        },
+        {
+            $project:{
+                likes:1
+            }
+        }
+    ])
+
+    if(!totalLikes.length){
+        throw new ApiError(404,"like count not found")
+    }
+
+    return res
+    .status(201)
+    .json(
+        new ApiResponse(
+            201,
+            {
+                likes:totalLikes[0].likes
+            },
+            "total likes on comment fetched successfully"
+        )
+    )
+})
+
 export{
     toggleVideoLike,
     toggleTweetLike,
     toggleCommentLike,
-    getLikedVideos
+    getLikedVideos,
+    getLikeCountVideo,
+    getLikeCountTweet,
+    getLikeCountComment
 }
