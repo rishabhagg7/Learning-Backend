@@ -349,16 +349,10 @@ const getAllVideos = asyncHandler(async (req, res) => {
         throw new ApiError(404,"No videos found")
     }
 
-    //paginate - create a subset from collection
-    let paginatedVideos = videos[0].uploadedVideos
-    const startIndex = Number(Number(page)-1)*Number(limit)
-    const endIndex = startIndex + Number(limit)
-    paginatedVideos = paginatedVideos.slice(startIndex,endIndex)
-
     //do sorting
     sortBy = sortBy || "createdAt"
     sortType = sortType === 'desc' ? -1 : 1; // Converting 'desc' to -1, default to 1
-    paginatedVideos.sort((a, b) => {
+    videos[0].uploadedVideos.sort((a, b) => {
         if (a[sortBy] < b[sortBy]) {
             return -1 * sortType;
         }
@@ -367,6 +361,12 @@ const getAllVideos = asyncHandler(async (req, res) => {
         }
         return 0;
     });
+
+    //paginate - create a subset from collection
+    let paginatedVideos = videos[0].uploadedVideos
+    const startIndex = Number(Number(page)-1)*Number(limit)
+    const endIndex = startIndex + Number(limit)
+    paginatedVideos = paginatedVideos.slice(startIndex,endIndex)
 
     //return response
     return res
