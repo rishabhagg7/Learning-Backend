@@ -178,7 +178,7 @@ const getUserTweets = asyncHandler(async(req,res)=>{
     .json(
         new ApiResponse(
             200,
-            tweets[0],
+            tweets[0].userTweets,
             "All tweets fetched successfully"
         )
     )
