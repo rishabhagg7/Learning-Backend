@@ -4,6 +4,9 @@ This repository contains the backend services for a video sharing-like applicati
 
 [Postman Testing](https://www.postman.com/science-geologist-77290036/workspace/personal-project/request/36246570-f7d69e4d-5128-4cec-abad-65fc28d2fb70)
 
+## Data Model
+![data model](https://github.com/user-attachments/assets/6455d750-0035-4c3e-9799-8308bb05889f)
+
 ## Table of Contents
 
 - [Getting Started](#getting-started)
