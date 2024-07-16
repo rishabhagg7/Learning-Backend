@@ -124,9 +124,9 @@ Here's a list of the main API endpoints:
 
 #### Subscriptions
 
-- `POST /api/v1/c/:channelId`: Toggle subscription of a channel by channel ID by current logged in user
-- `GET /api/v1/c/:channelId`: Get subscriber list of a channel by channel ID
-- `GET /api/v1/u/:subscriberId`: Get channel list of a user by subscriber ID(which is the user id)
+- `POST /api/v1/subscriptions/c/:channelId`: Toggle subscription of a channel by channel ID by current logged in user
+- `GET /api/v1/subscriptions/c/:channelId`: Get subscriber list of a channel by channel ID
+- `GET /api/v1/subscriptions/u/:subscriberId`: Get channel list of a user by subscriber ID(which is the user id)
 
 #### Videos
 
