@@ -25,6 +25,7 @@ To get a local copy up and running, follow these simple steps.
 - Node.js
 - npm (Node Package Manager)
 - MongoDB
+- Cloudinary
 
 ### Installation
 
