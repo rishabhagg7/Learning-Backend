@@ -133,12 +133,12 @@ Here's a list of the main API endpoints:
 
 #### Videos
 
-- `GET /api/v1/videos/get-all-videos`: Get a list of all videos uploaded by an user
+- `GET /api/v1/videos/get-all-videos`: Get a list of all videos uploaded by an user, By default page = 1, limit = 10, sortType = "createdAt",  sortBy = "asc", "desc" for descending order
 - `GET /api/v1/videos/v/:videoId`: Get video by ID
 - `PATCH /api/v1/videos/v/:videoId`: Update video's thumbnail uploaded by current logged in user by video ID
 - `DELETE /api/v1/videos/v/:videoId`: Delete video uploaded by current logged in user by video ID
 - `POST /api/v1/videos/upload-video`: Upload a new video
-- `GET /api/v1/videos/toggle-status/:videoId`: Toggle publish status of a video uploaded for current logged in user by video ID
+- `PATCH /api/v1/videos/toggle-status/:videoId`: Toggle publish status of a video uploaded for current logged in user by video ID
 
 #### Video views
 
@@ -148,7 +148,7 @@ Here's a list of the main API endpoints:
 #### Comments
 
 - `POST /api/v1/comments/:videoId`: Add a comment to a video by video ID by current logged in user
-- `GET /api/v1/comments/:videoId`: Get a list of comments on a video by video ID
+- `GET /api/v1/comments/:videoId`: Get a list of comments on a video by video ID, By default page = 1, limit = 10
 - `PATCH /api/v1/comments/:videoId`: Update comment on a video by video ID of current logged in user
 - `DELETE /api/comments/:id`: Delete comment on a video by video ID of current logged in user
 
